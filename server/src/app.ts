@@ -28,7 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
     origin: config.CORS_ORIGIN,
-    methods: ["GET", "POST", "UPDATE", "DELETE"],
+    methods: ["GET", "POST"],
     credentials: true,
   }),
 );
@@ -36,6 +36,6 @@ app.use(
 /**
  * Routes
  */
-app.use("/api", userRoutes);
+app.use("/api/user", userRoutes);
 
 export default app;

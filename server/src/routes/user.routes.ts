@@ -1,12 +1,20 @@
 import { Router } from "express";
-import type { Request, Response } from "express";
-import asyncHandler from "../utils/asyncHandler.ts";
-import { registerUser, loginUser } from "../controllers/user.controller.ts";
+import {
+  registerUser,
+  loginUser,
+  getUserProfile,
+  logoutUser,
+} from "../controllers/user.controller.ts";
+import authMiddleware from "../middleware/auth.middlewarwe.ts";
 
 const router = Router();
 
-router.post("/register", asyncHandler(registerUser));
+router.post("/register", registerUser);
 
-router.post("/login", asyncHandler(loginUser));
+router.post("/login", loginUser);
+
+router.post("/logout", authMiddleware, logoutUser);
+
+router.get("/me", authMiddleware, getUserProfile);
 
 export default router;
