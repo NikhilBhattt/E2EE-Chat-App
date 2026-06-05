@@ -5,7 +5,6 @@ import jwt from "jsonwebtoken";
 import config from "../config/config.ts";
 import asyncHandler from "../utils/asyncHandler.ts";
 import BlackListToken from "../models/blacklisttoken.model.ts";
-import { stat } from "node:fs";
 
 const registerUser = asyncHandler(async (req: Request, res: Response) => {
   const { username, password, publicKey } = req.body;

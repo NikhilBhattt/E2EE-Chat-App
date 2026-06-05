@@ -1,7 +1,12 @@
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
 import "./Login.css";
 
 function Login() {
+  const navigate = useNavigate();
+
   const [formValues, setFormValues] = useState({
     username: "",
     password: "",
@@ -43,13 +48,28 @@ function Login() {
     }
 
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+
+    const url = `${import.meta.env.VITE_API_URL}/user/login`;
+
+    try {
+      const response = await axios.post(url, {
+        ...formValues,
+      });
+
+      localStorage.setItem("token", response.data.token);
+
+      navigate("/chat", { replace: true });
+    } catch (error) {
+      console.error("Login error: ", error);
+    }
+
     setLoading(false);
     setSuccess(true);
   };
 
   return (
     <main className="login-page">
+      <ToastContainer />
       <section className="login-grid">
         <div className="form-panel">
           <div className="form-card">

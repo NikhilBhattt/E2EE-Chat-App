@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { createRef, useState } from "react";
+import axios from "axios";
 import "./Register.css";
 
 function Register() {
+  const navigate = useNavigate();
+
   const [formValues, setFormValues] = useState({
     username: "",
     password: "",
@@ -49,7 +53,22 @@ function Register() {
     }
 
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+
+    const url = `${import.meta.env.VITE_SERVER_URL}/user/register`;
+
+    try {
+      const response = await axios.post(url, {
+        ...formValues,
+        publicKey: "12345",
+      });
+
+      localStorage.setItem("token", response.data.token);
+
+      navigate("/chat", { replace: true });
+    } catch (error) {
+      console.error("Login error: ", error);
+    }
+
     setLoading(false);
     setSuccess(true);
   };
@@ -57,7 +76,6 @@ function Register() {
   return (
     <main className="register-page">
       <section className="register-grid">
-
         <div className="form-panel">
           <div className="form-card">
             <div className="form-header">
@@ -69,7 +87,6 @@ function Register() {
             </div>
 
             <form onSubmit={handleSubmit} noValidate>
-
               <div className="field-group">
                 <label htmlFor="username">Username</label>
                 <input
