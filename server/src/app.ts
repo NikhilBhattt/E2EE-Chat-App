@@ -8,6 +8,8 @@ import cors from "cors";
  */
 import config from "./config/config.ts";
 import userRoutes from "./routes/user.routes.ts";
+import chatRoutes from "./routes/chat.routes.ts";
+import messageRoutes from "./routes/message.routes.ts";
 import connectDB from "./db/connection.ts";
 
 /***
@@ -37,5 +39,7 @@ app.use(
  * Routes
  */
 app.use("/api/user", userRoutes);
+app.use("/api/chat", chatRoutes);
+app.use("/api/message", messageRoutes);
 
 export default app;

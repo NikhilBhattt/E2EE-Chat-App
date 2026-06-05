@@ -1,7 +1,7 @@
 .login-page {
   min-height: 100vh;
   max-width: 100dvw;
-  background: url("../../assets/Background.png") no-repeat center center;
+  background: url("../../assets/Background.webp") no-repeat center center;
   background-size: cover;
   display: flex;
   align-items: center;

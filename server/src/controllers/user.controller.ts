@@ -32,7 +32,7 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
     publicKey,
   });
 
-  const token = jwt.sign({ username }, config.JWT_SECRET, {
+  const token = jwt.sign({ id: user._id, username }, config.JWT_SECRET, {
     expiresIn: "1d",
   });
 
@@ -66,7 +66,7 @@ const loginUser = asyncHandler(async (req: Request, res: Response) => {
       .json({ status: "error", message: "Invalid credentials" });
   }
 
-  const token = jwt.sign({ username }, config.JWT_SECRET, {
+  const token = jwt.sign({ id: user._id, username }, config.JWT_SECRET, {
     expiresIn: "1d",
   });
 
@@ -77,11 +77,11 @@ const loginUser = asyncHandler(async (req: Request, res: Response) => {
 });
 
 interface AuthRequest extends Request {
-  user?: object | string;
-  token?: string;
+  user?: { username: string };
+  token: string;
 }
 const getUserProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
-  return res.status(200).json({ status: "success", data: req.user });
+  return res.status(200).json({ status: "success", user: req.user });
 });
 
 const logoutUser = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -91,4 +91,31 @@ const logoutUser = asyncHandler(async (req: AuthRequest, res: Response) => {
   return res.status(200).json({ status: "success", message: "Logged Out" });
 });
 
-export { registerUser, loginUser, getUserProfile, logoutUser };
+const searchUser = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { username } = req.query;
+
+  if (typeof username !== "string") {
+    return res.status(400).json({
+      status: "error",
+      message: "Username query parameter is required",
+    });
+  }
+
+  const filter: Record<string, any> = {
+    username: { $regex: username, $options: "i" },
+  };
+
+  if (req.user?.username) {
+    filter.username.$ne = req.user.username;
+  }
+
+  const users = await User.find(filter);
+
+  if (!users.length) {
+    return res.status(404).json({ status: "error", message: "User not found" });
+  }
+
+  return res.status(200).json({ status: "success", users });
+});
+
+export { registerUser, loginUser, getUserProfile, logoutUser, searchUser };

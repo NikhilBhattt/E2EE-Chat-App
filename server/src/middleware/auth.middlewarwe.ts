@@ -31,7 +31,7 @@ const authMiddleware = async (
     if (isBlackListed) {
       return res
         .status(401)
-        .json({ status: "error", message: "Invalid Token" });
+        .json({ status: "error", message: "Blacklisted Token" });
     }
 
     const decoded = jwt.verify(token, config.JWT_SECRET);

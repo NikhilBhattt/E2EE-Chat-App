@@ -54,7 +54,7 @@ function Register() {
 
     setLoading(true);
 
-    const url = `${import.meta.env.VITE_SERVER_URL}/user/register`;
+    const url = `${import.meta.env.VITE_API_URL}/user/register`;
 
     try {
       const response = await axios.post(url, {

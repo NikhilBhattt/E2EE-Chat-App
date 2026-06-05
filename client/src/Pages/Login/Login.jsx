@@ -15,6 +15,7 @@ function Login() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [loginError, setLoginError] = useState("");
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -40,6 +41,7 @@ function Login() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setSuccess(false);
+    setLoginError("");
 
     const validationErrors = validate();
     if (Object.keys(validationErrors).length) {
@@ -56,15 +58,17 @@ function Login() {
         ...formValues,
       });
 
+      if (response.data.status !== "success") {
+        throw new Error(response.data.message || "Invalid Credentials");
+      }
+
       localStorage.setItem("token", response.data.token);
 
       navigate("/chat", { replace: true });
     } catch (error) {
-      console.error("Login error: ", error);
+      setLoading(false);
+      setLoginError(error.response.data.message);
     }
-
-    setLoading(false);
-    setSuccess(true);
   };
 
   return (
@@ -80,6 +84,19 @@ function Login() {
                 and secure key generation on your device.
               </p>
             </div>
+
+            {loginError && (
+              <p
+                className="form-note"
+                style={{
+                  textAlign: "center",
+                  marginTop: "1rem",
+                  color: "#dc2525",
+                }}
+              >
+                {loginError}
+              </p>
+            )}
 
             <form onSubmit={handleSubmit} noValidate>
               <div className="field-group">
@@ -147,16 +164,6 @@ function Login() {
               Don't have an account?
               <a href="/register">Create Account</a>
             </p>
-
-            {success && (
-              <p
-                className="form-note"
-                style={{ marginTop: "1rem", color: "#b9fbb2" }}
-              >
-                Account setup is ready. Your private session will start once you
-                complete verification.
-              </p>
-            )}
           </div>
         </div>
       </section>

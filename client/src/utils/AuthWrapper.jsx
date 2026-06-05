@@ -1,15 +1,26 @@
-import { Navigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { Navigate, Outlet } from "react-router-dom";
+import isAuthenticated from "./auth.js";
 
-const AuthWrapper = ({ isAuthenticated }) => {
-  // Optional: Save the current location to redirect back after login
-  const location = useLocation();
-  
-  if (isAuthenticated) {
-    // Redirect to dashboard or register if preferred for logged-in users
-    return <Navigate to="/chat" replace />; 
+const AuthWrapper = () => {
+  const [isValidated, setIsValidated] = useState(null);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const result = await isAuthenticated();
+      setIsValidated(result);
+    };
+    checkAuth();
+  }, []);
+
+  if (isValidated === null) {
+    return <div>Loading...</div>;
   }
-  
-  return <Navigate to="/register" replace />;
+
+  if (!isValidated) {
+    return <Navigate to="/login" replace />;
+  }
+  return <Outlet />;
 };
 
 export default AuthWrapper;

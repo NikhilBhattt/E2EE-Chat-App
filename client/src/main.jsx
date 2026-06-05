@@ -12,7 +12,7 @@ import App from "./App.jsx";
 import Login from "./Pages/Login/Login.jsx";
 import Register from "./Pages/Register/Register.jsx";
 import ChatWindow from "./Pages/Chat/ChatWindow.jsx";
-import AuthWrapper from './utils/AuthWrapper.jsx';
+import AuthWrapper from "./utils/AuthWrapper.jsx";
 
 /**
  * Create root
@@ -20,11 +20,17 @@ import AuthWrapper from './utils/AuthWrapper.jsx';
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <Routes>
-      // Usage in Routes
-      <Route path="/" element={<AuthWrapper isAuthenticated={false} />} />
+      {/* Public Routes */}
       <Route path="/register" element={<Register />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/chat" element={<ChatWindow />} />
+
+      {/* Protected Routes */}
+      <Route element={<AuthWrapper />}>
+        <Route path="/chat" element={<ChatWindow />} />
+        <Route path="/" element={<Navigate to={<Register />} />} />
+      </Route>
+
+      {/* 404 Fallback */}
       <Route path="*" element={<h2>404 Page not found</h2>} />
     </Routes>
   </BrowserRouter>,

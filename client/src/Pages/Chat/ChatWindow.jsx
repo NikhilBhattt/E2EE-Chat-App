@@ -4,102 +4,23 @@ import { replace, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import axios from "axios";
 import "./ChatWindow.css";
-
-const chats = [
-  {
-    id: 1,
-    name: "Arianna Wells",
-    message: "See you at the secure group later.",
-    time: "11:42 AM",
-    unread: 2,
-    online: true,
-    avatar:
-      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80",
-  },
-  {
-    id: 2,
-    name: "Ethan Park",
-    message: "Everything is encrypted end to end.",
-    time: "9:18 AM",
-    unread: 0,
-    online: false,
-    avatar:
-      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=120&q=80",
-  },
-  {
-    id: 3,
-    name: "CipherOps",
-    message: "New security logs are ready for review.",
-    time: "Yesterday",
-    unread: 5,
-    online: true,
-    avatar:
-      "https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=120&q=80",
-  },
-  {
-    id: 4,
-    name: "Nova Team",
-    message: "Double-check your key backup before tonight.",
-    time: "Mon",
-    unread: 0,
-    online: false,
-    avatar:
-      "https://images.unsplash.com/photo-1511367461989-f85a21fda167?auto=format&fit=crop&w=120&q=80",
-  },
-];
-
-const messages = [
-  {
-    id: 1,
-    type: "incoming",
-    text: "Hey, are you online for the encrypted sync?",
-    time: "11:36 AM",
-  },
-  {
-    id: 2,
-    type: "outgoing",
-    text: "Yes, I’m here. The channel is private and keys are active.",
-    time: "11:37 AM",
-  },
-  {
-    id: 3,
-    type: "incoming",
-    text: "Perfect. I just confirmed the fingerprint on both devices.",
-    time: "11:38 AM",
-  },
-  {
-    id: 4,
-    type: "outgoing",
-    text: "Great. I’ll send the auth token in the next message.",
-    time: "11:39 AM",
-  },
-  {
-    id: 5,
-    type: "Incoming",
-    text: "lorem ipsum is great for me.",
-    time: "11:39 AM",
-  },
-  {
-    id: 6,
-    type: "Incoming",
-    text: "Great. I’ll send the auth token in the next message.",
-    time: "11:39 AM",
-  },
-  {
-    id: 7,
-    type: "outgoing",
-    text: "Great. I’ll send the auth token in the next message.",
-    time: "11:39 AM",
-  },
-];
+import timeSince from "../../Utils/timeSince";
+import timeSinceUTC from "../../Utils/timeSince";
+import DefaultCover from "../../Assets/DefaultCover.webp";
 
 function ChatWindow() {
   const navigate = useNavigate();
 
-  const [selectedChatId, setSelectedChatId] = useState(chats[0].id);
+  const [user, setUser] = useState(null);
+  const [chats, setChats] = useState([]);
+  const [messages, setMessages] = useState([]);
+  ``;
+  const [msg, setMsg] = useState("");
+
+  const [selectedChatId, setSelectedChatId] = useState(null);
 
   const activeChat = useMemo(
-    () => chats.find((chat) => chat.id === selectedChatId) || chats[0],
+    () => chats.find((chat) => chat._id === selectedChatId) || chats[0],
     [selectedChatId],
   );
 
@@ -121,7 +42,7 @@ function ChatWindow() {
         );
 
         localStorage.clear();
-        navigate("/", { replace: true });
+        navigate("/login", { replace: true });
       } catch (error) {
         console.error("Logout error: ", error);
       }
@@ -130,6 +51,12 @@ function ChatWindow() {
 
   const socket = useMemo(() => io(import.meta.env.VITE_SERVER_URL), []);
 
+  function handleMessageSend() {
+    setMsg("");
+
+    socket.emit("message-send", {});
+  }
+
   useEffect(() => {
     // toast("Welcome to CipherChat!");
 
@@ -137,13 +64,38 @@ function ChatWindow() {
       console.log("connected", socket.id);
     });
 
-    socket.on("welcome", (m) => {
-      console.log(m);
-    });
-
     socket.on("message", (m) => {
       console.log(m);
     });
+
+    const fetchUser = async () => {
+      const token = localStorage.getItem("token");
+      const url = `${import.meta.env.VITE_API_URL}/user/me`;
+
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setUser(response.data.user);
+    };
+    fetchUser();
+
+    const fetchChats = async () => {
+      const token = localStorage.getItem("token");
+      const url = `${import.meta.env.VITE_API_URL}/chat/`;
+
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.data.chats) {
+        setSelectedChatId(response.data.chats?.[0]._id)
+        setChats(response.data.chats);
+      }
+    };
+    fetchChats();
 
     return () => {
       socket.disconnect();
@@ -163,13 +115,10 @@ function ChatWindow() {
 
               <div className="user-card">
                 <div className="user-avatar">
-                  <img
-                    src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80"
-                    alt="User avatar"
-                  />
+                  <img src={DefaultCover} alt="User avatar" />
                 </div>
                 <div className="user-meta">
-                  <strong>Nova Giles</strong>
+                  <strong>{user?.username}</strong>
                   <span>Online · Secure</span>
                 </div>
 
@@ -197,25 +146,33 @@ function ChatWindow() {
             <div className="conversation-list">
               {chats.map((chat) => (
                 <div
-                  key={chat.id}
-                  className={`conversation-card ${chat.id === selectedChatId ? "active" : ""}`}
-                  onClick={() => setSelectedChatId(chat.id)}
+                  key={chat._id}
+                  className={`conversation-card ${chat._id === selectedChatId ? "active" : ""}`}
+                  onClick={() => setSelectedChatId(chat._id)}
                 >
                   <div className="conversation-avatar">
-                    <img src={chat.avatar} alt={`${chat.name} avatar`} />
+                    <img
+                      src={DefaultCover}
+                      alt={`${chat.users.map((ch) => {
+                        if (ch._id !== user.id) return ch.username;
+                      })} avatar`}
+                    />
                     <span
                       className={chat.online ? "status-dot online" : ""}
                     ></span>
                   </div>
                   <div className="conversation-content">
-                    <strong>{chat.name}</strong>
-                    <span>{chat.message}</span>
+                    <strong>
+                      {chat.users.map((ch) => {
+                        if (ch._id !== user.id) return ch.username;
+                      })}
+                    </strong>
+                    <span>
+                      {chat.latestMessage ?? "Tap to start Conversation."}
+                    </span>
                   </div>
                   <div className="conversation-meta">
-                    <small>{chat.time}</small>
-                    {chat.unread > 0 && (
-                      <span className="unread-badge">{chat.unread}</span>
-                    )}
+                    <small>{timeSinceUTC(chat.updatedAt)}</small>
                   </div>
                 </div>
               ))}
@@ -227,36 +184,18 @@ function ChatWindow() {
           <div className="chat-header">
             <div className="chat-header-left">
               <div className="chat-header-avatar">
-                <img
-                  src={activeChat.avatar}
-                  alt={`${activeChat.name} avatar`}
-                />
+                <img src={DefaultCover} alt={`Cover avatar`} />
               </div>
               <div className="chat-header-meta">
-                <strong>{activeChat.name}</strong>
-                <span>
-                  {activeChat.online ? "Active now" : "Last seen 20m ago"}
-                </span>
+                <strong>
+                  {activeChat?.users.map((ch) => {
+                    if (ch._id !== user.id) return ch.username;
+                  })}
+                </strong>
+                {/* <span>{chats.online ? "Active now" : "Last seen 20m ago"}</span> */}
               </div>
             </div>
             <div className="chat-actions">
-              <button type="button" aria-label="Search chat">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <circle
-                    cx="10.5"
-                    cy="10.5"
-                    r="6.5"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                  />
-                  <path
-                    d="M16.75 16.75L21 21"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
               <button type="button" aria-label="More options">
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <circle cx="12" cy="5" r="1.5" fill="currentColor" />
@@ -306,16 +245,18 @@ function ChatWindow() {
           </div>
 
           <div className="message-input">
-            <div className="input-row">
+            <form className="input-row" onSubmit={handleMessageSend}>
               <input
                 type="text"
+                value={msg}
+                onChange={(e) => setMsg(e.target.value)}
                 placeholder="Type a secure message..."
                 aria-label="Type a secure message"
               />
-              <button className="send-button" type="button">
+              <button className="send-button" type="submit">
                 <i className="ri-send-plane-2-line"></i>
               </button>
-            </div>
+            </form>
           </div>
         </section>
 
