@@ -26,6 +26,20 @@ function ChatWindow() {
     [selectedChatId],
   );
 
+  const filteredMessages = useMemo(
+    () =>
+      messages.filter((msg) => {
+        let case1 =
+          activeChat?.users.find((u) => u._id === msg.reciever) !== undefined;
+
+        let case2 =
+          activeChat?.users.find((u) => u._id === msg.sender) !== undefined;
+
+        return case1 && case2;
+      }),
+    [activeChat, messages],
+  );
+
   async function handlLogout() {
     if (confirm("Are you sure you want to Logout?")) {
       // logout api
@@ -51,12 +65,45 @@ function ChatWindow() {
     }
   }
 
-  const socket = useMemo(() => io(import.meta.env.VITE_SERVER_URL), []);
+  function updateChatLatestMessage(message) {
+    chats.forEach((chat) => {
+      if (chat._id === selectedChatId) {
+        chat.latestMessage = message;
+        return;
+      }
+    });
+  }
 
-  function handleMessageSend() {
-    setMsg("");
+  async function handleMessageSend(e) {
+    e.preventDefault();
+    if (!msg.trim()) return;
 
-    socket.emit("message-send", {});
+    try {
+      const token = localStorage.getItem("token");
+      const url = `${import.meta.env.VITE_API_URL}/message/`;
+
+      const reciever = activeChat.users.find((u) => u._id !== user.id);
+      const bodyData = {
+        content: msg.trim(),
+        recieverId: reciever._id,
+      };
+
+      const { data } = await axios.post(url, bodyData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (data.message) {
+        console.log(data.message);
+        updateChatLatestMessage(data.message);
+        setMessages((prev) => [...prev, data.message]);
+      }
+    } catch (error) {
+      toast("Error Occured! try again please.");
+    } finally {
+      setMsg("");
+    }
   }
 
   async function accessChat(userId) {
@@ -76,8 +123,6 @@ function ChatWindow() {
         },
       );
 
-      console.log("access chat data ", data);
-
       setCurrTab("chat");
       setSelectedChatId(data.chat._id);
 
@@ -88,6 +133,8 @@ function ChatWindow() {
       toast("Try again please!");
     }
   }
+
+  const socket = useMemo(() => io(import.meta.env.VITE_SERVER_URL), []);
 
   useEffect(() => {
     // toast("Welcome to CipherChat!");
@@ -104,30 +151,46 @@ function ChatWindow() {
       const token = localStorage.getItem("token");
       const url = `${import.meta.env.VITE_API_URL}/user/me`;
 
-      const response = await axios.get(url, {
+      const { data } = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setUser(response.data.user);
+      setUser(data.user);
     };
-    fetchUser();
 
     const fetchChats = async () => {
       const token = localStorage.getItem("token");
       const url = `${import.meta.env.VITE_API_URL}/chat/`;
 
-      const response = await axios.get(url, {
+      const { data } = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (response.data.chats) {
-        setSelectedChatId(response.data.chats?.[0]?._id);
-        setChats(response.data.chats);
+      if (data.chats) {
+        setSelectedChatId(data.chats?.[0]?._id);
+        setChats(data.chats);
       }
     };
+
+    const fetchMessages = async () => {
+      const token = localStorage.getItem("token");
+      const url = `${import.meta.env.VITE_API_URL}/message/all`;
+
+      const { data } = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (data.messages) {
+        setMessages(data.messages);
+      }
+    };
+
+    fetchUser();
     fetchChats();
+    fetchMessages();
 
     return () => {
       socket.disconnect();
@@ -206,9 +269,9 @@ function ChatWindow() {
                           if (ch._id !== user.id) return ch.username;
                         })} avatar`}
                       />
-                      <span
+                      {/* <span
                         className={chat.online ? "status-dot online" : ""}
-                      ></span>
+                      ></span> */}
                     </div>
                     <div className="conversation-content">
                       <strong>
@@ -217,7 +280,13 @@ function ChatWindow() {
                         })}
                       </strong>
                       <span>
-                        {chat.latestMessage ?? "Tap to start Conversation."}
+                        {chat.latestMessage?.content
+                          ? `${
+                              chat.latestMessage.sender === user.id
+                                ? "You: "
+                                : ""
+                            }${chat.latestMessage.content}`
+                          : "Tap to start chat"}
                       </span>
                     </div>
                     <div className="conversation-meta">
@@ -244,7 +313,7 @@ function ChatWindow() {
                     if (ch._id !== user.id) return ch.username;
                   })}
                 </strong>
-                {/* <span>{chats.online ? "Active now" : "Last seen 20m ago"}</span> */}
+                <span>{chats.online ? "Active now" : "Last seen 20m ago"}</span>
               </div>
             </div>
             <div className="chat-actions">
@@ -284,12 +353,16 @@ function ChatWindow() {
           </div>
 
           <div className="message-thread">
-            {messages.map((message) => (
-              <div key={message.id} className="message-group">
-                <div className={`message-bubble ${message.type}`}>
-                  <p className="message-text">{message.text}</p>
+            {filteredMessages.map((message, idx) => (
+              <div key={idx} className="message-group">
+                <div
+                  className={`message-bubble ${
+                    message.sender === user.id ? "outgoing" : "incoming"
+                  }`}
+                >
+                  <p className="message-text">{message.content}</p>
                   <div className="message-info">
-                    <span>{message.time}</span>
+                    <span>{timeSince(message.createdAt)}</span>
                   </div>
                 </div>
               </div>

@@ -420,12 +420,13 @@
 }
 
 .message-group {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 0.55rem;
 }
 
 .message-bubble {
-  max-width: 72%;
+  max-width: 70%;
   padding: 1rem 1.1rem;
   border-radius: 22px;
   background: rgba(18, 25, 36, 0.95);

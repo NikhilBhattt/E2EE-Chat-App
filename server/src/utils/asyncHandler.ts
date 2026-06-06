@@ -5,6 +5,7 @@ const asyncHandler = (fn: Function) => {
     try {
       await fn(req, res, next);
     } catch (error: Error | any) {
+      console.log("Error from AsyncHandler")
       res.status(500).json({
         success: false,
         message: error.message,
