@@ -1,0 +1,58 @@
+
+.security-panel {
+  max-height: calc(100vh - 3rem);
+}
+
+.security-panel h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.8rem;
+}
+.security-panel .panel-inner {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.security-card {
+  padding: 0.9rem 1.2rem;
+  border-radius: 24px;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: start;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.security-card strong {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 0.45rem;
+}
+.security-card svg {
+  color: #25d366;
+  width: 22px;
+  height: 22px;
+  filter: drop-shadow(0 0 5px rgba(42, 239, 114, 1));
+}
+
+.security-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  color: #b8d6ff;
+  background: rgba(56, 148, 255, 0.1);
+  font-size: 0.82rem;
+}
+
+.security-pill svg {
+  width: 16px;
+  height: 16px;
+}
+
+.security-note {
+  color: #7494c0;
+  font-size: 0.92rem;
+  line-height: 1.7;
+}

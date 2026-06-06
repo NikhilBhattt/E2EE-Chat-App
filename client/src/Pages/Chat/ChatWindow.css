@@ -43,7 +43,11 @@
 .chat-panel .panel-inner {
   padding: 1.3rem;
 }
-
+.panel-inner {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 .sidebar-top {
   display: flex;
   flex-direction: column;
@@ -153,12 +157,16 @@
 }
 
 .nav-menu {
-  display: grid;
+  display: flex;  
+  justify-content: center;
   gap: 0.75rem;
-  margin: 1rem 0;
+  margin-bottom: 1rem;
 }
 
 .nav-item {
+  width: 50%;
+  background-color: rgb(255, 255, 255, 0.05);
+  border: 1px solid rgb(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   gap: 0.9rem;
@@ -185,24 +193,6 @@
 
 .nav-item.active svg {
   color: #25d366;
-}
-
-.sidebar-search {
-  margin: 1.75rem 0 1rem;
-}
-
-.sidebar-search input {
-  width: 100%;
-  min-height: 52px;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  color: #eef4ff;
-  padding: 0.9rem 1rem;
-}
-
-.sidebar-search input::placeholder {
-  color: rgba(224, 236, 255, 0.56);
 }
 
 .conversation-list {
@@ -525,89 +515,7 @@
   box-shadow: 0 18px 36px rgba(37, 211, 102, 0.22);
 }
 
-.security-panel {
-  max-height: calc(100vh - 3rem);
-}
 
-.security-panel h3 {
-  font-size: 1.1rem;
-  margin-bottom: 0.8rem;
-}
-.security-panel .panel-inner {
-  display: grid;
-  gap: 1.2rem;
-}
-
-.security-card {
-  padding: 0.9rem 1.2rem;
-  border-radius: 24px;
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  justify-content: start;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.security-card strong {
-  display: block;
-  font-size: 1rem;
-  margin-bottom: 0.45rem;
-}
-.security-card svg {
-  color: #25d366;
-  width: 22px;
-  height: 22px;
-  filter: drop-shadow(0 0 5px rgba(42, 239, 114, 1));
-}
-
-.security-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.55rem 0.85rem;
-  border-radius: 999px;
-  color: #b8d6ff;
-  background: rgba(56, 148, 255, 0.1);
-  font-size: 0.82rem;
-}
-
-.security-pill svg {
-  width: 16px;
-  height: 16px;
-}
-
-.security-note {
-  color: #7494c0;
-  font-size: 0.92rem;
-  line-height: 1.7;
-}
-
-.sidebar-footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 1.2rem;
-  display: grid;
-  gap: 0.95rem;
-}
-
-.footer-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  color: #9cb0d2;
-  padding: 0.95rem 1rem;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.footer-item button {
-  border: none;
-  background: transparent;
-  color: #25d366;
-  cursor: pointer;
-  font-weight: 700;
-}
 
 @media (max-width: 1200px) {
   .dashboard {

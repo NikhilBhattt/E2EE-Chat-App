@@ -25,11 +25,8 @@ const accessChat = asyncHandler(async (req: AuthRequest, res: Response) => {
   if (chat) {
     return res.status(200).json({ status: "success", chat });
   }
-  const chatData = {
-    users: [req.user.id, userId],
-  };
 
-  const createdChat = await Chat.create(chatData);
+  const createdChat = await Chat.create({ users: [req.user.id, userId] });
 
   const fullChat = await Chat.findOne({ _id: createdChat._id })
     .populate("users")
@@ -45,7 +42,5 @@ const fetchChat = asyncHandler(async (req: AuthRequest, res: Response) => {
 
   return res.status(200).json({ status: "success", chats });
 });
-
-
 
 export { accessChat, fetchChat };

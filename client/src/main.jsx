@@ -21,13 +21,12 @@ createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <Routes>
       {/* Public Routes */}
-      <Route path="/register" element={<Register />} />
+      <Route path="/" element={<Register />} />
       <Route path="/login" element={<Login />} />
 
       {/* Protected Routes */}
       <Route element={<AuthWrapper />}>
         <Route path="/chat" element={<ChatWindow />} />
-        <Route path="/" element={<Navigate to={<Register />} />} />
       </Route>
 
       {/* 404 Fallback */}

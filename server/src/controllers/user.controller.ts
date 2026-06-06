@@ -111,10 +111,6 @@ const searchUser = asyncHandler(async (req: AuthRequest, res: Response) => {
 
   const users = await User.find(filter);
 
-  if (!users.length) {
-    return res.status(404).json({ status: "error", message: "User not found" });
-  }
-
   return res.status(200).json({ status: "success", users });
 });
 

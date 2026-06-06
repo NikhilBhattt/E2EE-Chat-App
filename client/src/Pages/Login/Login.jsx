@@ -162,7 +162,7 @@ function Login() {
             </p>
             <p className="login-line">
               Don't have an account?
-              <a href="/register">Create Account</a>
+              <a href="/">Create Account</a>
             </p>
           </div>
         </div>
