@@ -13,6 +13,7 @@ import SearchUser from "../../Components/SearchUser.jsx";
 function ChatWindow() {
   const navigate = useNavigate();
 
+  const socket = useMemo(() => io(import.meta.env.VITE_SERVER_URL), []);
   const [user, setUser] = useState(null);
   const [chats, setChats] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -26,19 +27,22 @@ function ChatWindow() {
     [selectedChatId],
   );
 
-  const filteredMessages = useMemo(
-    () =>
-      messages.filter((msg) => {
-        let case1 =
-          activeChat?.users.find((u) => u._id === msg.reciever) !== undefined;
+  // filter message for current Chat and Connect to Socket
+  const filteredMessages = useMemo(() => {
+    if (!activeChat) return [];
 
-        let case2 =
-          activeChat?.users.find((u) => u._id === msg.sender) !== undefined;
+    socket.emit("join-chat", activeChat._id);
 
-        return case1 && case2;
-      }),
-    [activeChat, messages],
-  );
+    return messages.filter((msg) => {
+      const case1 =
+        activeChat.users.find((u) => u._id === msg.reciever) !== undefined;
+
+      const case2 =
+        activeChat.users.find((u) => u._id === msg.sender) !== undefined;
+
+      return case1 && case2;
+    });
+  }, [activeChat, messages]);
 
   async function handlLogout() {
     if (confirm("Are you sure you want to Logout?")) {
@@ -65,13 +69,12 @@ function ChatWindow() {
     }
   }
 
-  function updateChatLatestMessage(message) {
-    chats.forEach((chat) => {
-      if (chat._id === selectedChatId) {
-        chat.latestMessage = message;
-        return;
-      }
-    });
+  function updateChatLatestMessage(chatId, message) {
+    setChats((prevChats) =>
+      prevChats.map((chat) =>
+        chat._id === chatId ? { ...chat, latestMessage: message } : chat,
+      ),
+    );
   }
 
   async function handleMessageSend(e) {
@@ -95,8 +98,11 @@ function ChatWindow() {
       });
 
       if (data.message) {
-        console.log(data.message);
-        updateChatLatestMessage(data.message);
+        socket.emit("new-message", {
+          chat: activeChat,
+          newMessage: data.message,
+        });
+        updateChatLatestMessage(activeChat._id, data.message);
         setMessages((prev) => [...prev, data.message]);
       }
     } catch (error) {
@@ -134,18 +140,8 @@ function ChatWindow() {
     }
   }
 
-  const socket = useMemo(() => io(import.meta.env.VITE_SERVER_URL), []);
-
   useEffect(() => {
     // toast("Welcome to CipherChat!");
-
-    socket.on("connect", () => {
-      console.log("connected", socket.id);
-    });
-
-    socket.on("message", (m) => {
-      console.log(m);
-    });
 
     const fetchUser = async () => {
       const token = localStorage.getItem("token");
@@ -196,6 +192,20 @@ function ChatWindow() {
       socket.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    const handler = ({ chat, newMessage }) => {
+      console.log("listening to newMessage");
+
+      updateChatLatestMessage(chat._id, newMessage);
+      setMessages((prev) => [...prev, newMessage]);
+    };
+
+    socket.on("message-recieve", handler);
+    return () => {
+      socket.off("message-recieve", handler);
+    };
+  }, [socket, activeChat]);
 
   return (
     <>
