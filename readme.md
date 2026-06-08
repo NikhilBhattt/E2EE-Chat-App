@@ -11,8 +11,6 @@ A secure, end-to-end encrypted real-time messaging application built with React 
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
 - **Multi-Tab Support**: Secure token isolation across browser tabs
 - **Message History**: Persistent message storage with decryption support
-- **Online Status**: See when users are active
-- **Security Panel**: View chat encryption status and security information
 
 ## 🛠️ Technology Stack
 
