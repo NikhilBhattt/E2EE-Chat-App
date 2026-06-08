@@ -38,16 +38,21 @@ export const initializeSocketIO = (server: HTTPServer): SocketIOServer => {
 
     socket.on("join-chat", (roomId: string) => {
       socket.join(roomId);
+      socket.emit("connected")
       console.log("User joined room: ", roomId);
     });
 
     socket.on(
       "new-message",
       ({ chat, newMessage }: { chat: Chat; newMessage: Message }) => {
-        // broadcast to all sockets in the chat room except the sender
-        socket.to(chat._id).emit("message-recieve", {chat, newMessage});
+        socket.to(chat._id).emit("message-recieve", { chat, newMessage });
       },
     );
+
+    socket.on("start-typing", (chat) =>
+      socket.to(chat._id).emit("start-typing"),
+    );
+    socket.on("stop-typing", (chat) => socket.to(chat._id).emit("stop-typing"));
   });
 
   return io;

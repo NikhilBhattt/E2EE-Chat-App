@@ -157,7 +157,7 @@
 }
 
 .nav-menu {
-  display: flex;  
+  display: flex;
   justify-content: center;
   gap: 0.75rem;
   margin-bottom: 1rem;
@@ -444,6 +444,67 @@
   background: #777;
 }
 
+.typing-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  max-width: 240px;
+  padding: 0.85rem 0.9rem;
+  border-radius: 24px;
+  background: rgba(37, 211, 102, 0.08);
+  border: 1px solid rgba(37, 211, 102, 0.18);
+  color: #d3f5d6;
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.14);
+  justify-self: start;
+}
+
+.typing-dots {
+  display: grid;
+  grid-auto-flow: column;
+  gap: 0.45rem;
+}
+
+.typing-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #25d366;
+  opacity: 0.55;
+  animation: typing-pulse 1s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typing-dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing-dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.typing-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e2f7d9;
+  text-transform: lowercase;
+}
+
+@keyframes typing-pulse {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.55;
+  }
+
+  50% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
 .message-group {
   display: flex;
   flex-direction: column;
@@ -609,6 +670,9 @@
 }
 
 @media (max-width: 600px) {
+  .message-thread::-webkit-scrollbar {
+    display: none;
+  }
   .dashboard {
     grid-template-columns: 1fr;
   }
@@ -660,6 +724,7 @@
   }
 
   .message-bubble {
+    font-size: 1.1rem;
     max-width: 85%;
   }
 

@@ -23,11 +23,14 @@ function ChatWindow() {
   const navigate = useNavigate();
 
   const socket = useMemo(() => io(import.meta.env.VITE_SERVER_URL), []);
+  const [socketConnected, setSocketConnected] = useState(false);
   const [user, setUser] = useState(null);
   const [chats, setChats] = useState([]);
   const [messages, setMessages] = useState([]);
   const [decryptedMessages, setDecryptedMessages] = useState({});
   const [currTab, setCurrTab] = useState("chat");
+  const [typing, setTyping] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const [msg, setMsg] = useState("");
 
   const [selectedChatId, setSelectedChatId] = useState(null);
@@ -35,7 +38,10 @@ function ChatWindow() {
 
   const getCurrentToken = () => {
     const currUserId = sessionStorage.getItem("currUser");
-    return localStorage.getItem(`token_${currUserId}`) || sessionStorage.getItem("token");
+    return (
+      localStorage.getItem(`token_${currUserId}`) ||
+      sessionStorage.getItem("token")
+    );
   };
 
   const activeChat = useMemo(
@@ -100,6 +106,8 @@ function ChatWindow() {
     if (!msg.trim()) return;
 
     try {
+      socket.emit("stop-typing", activeChat)
+      setIsTyping(false)
       const token = getCurrentToken();
       const url = `${import.meta.env.VITE_API_URL}/message/`;
 
@@ -142,8 +150,6 @@ function ChatWindow() {
   }
 
   async function accessChat(userId) {
-    // create chat with this userId
-
     try {
       const url = `${import.meta.env.VITE_API_URL}/chat/`;
       const token = getCurrentToken();
@@ -167,6 +173,30 @@ function ChatWindow() {
     } catch (error) {
       toast("Try again please!");
     }
+  }
+
+  function typingHandler(e) {
+    setMsg(e.target.value);
+
+    if (!socketConnected) return;
+
+    if (!typing){
+      setTyping(true);
+      socket.emit("start-typing", activeChat);
+    } 
+
+    let lastTypingTime = new Date().getTime();
+    let  timerLength = 3000;
+
+    setTimeout(() => {
+      let timeNow = new Date().getTime();
+      let timeDifference = timeNow - lastTypingTime;
+
+      if (timeDifference >= timerLength && typing) {
+        socket.emit("stop-typing", activeChat);
+        setTyping(false);
+      }
+    }, timerLength);
   }
 
   useEffect(() => {
@@ -275,7 +305,7 @@ function ChatWindow() {
     if (!messageThreadRef.current) return;
     const thread = messageThreadRef.current;
     thread.scrollTop = thread.scrollHeight;
-  }, [filteredMessages]);
+  }, [filteredMessages, isTyping]);
 
   useEffect(() => {
     const handler = ({ chat, newMessage }) => {
@@ -288,6 +318,18 @@ function ChatWindow() {
       socket.off("message-recieve", handler);
     };
   }, [socket, activeChat]);
+
+  useEffect(() => {
+    socket.on("connected", () => setSocketConnected(true));
+
+    socket.on("start-typing", () => {
+      setIsTyping(true);
+    });
+
+    socket.on("stop-typing", () => {
+      setIsTyping(false);
+    });
+  }, []);
 
   return (
     <>
@@ -361,9 +403,6 @@ function ChatWindow() {
                           if (ch._id !== user.id) return ch.username;
                         })} avatar`}
                       />
-                      {/* <span
-                        className={chat.online ? "status-dot online" : ""}
-                      ></span> */}
                     </div>
                     <div className="conversation-content">
                       <strong>
@@ -377,7 +416,7 @@ function ChatWindow() {
                               chat.latestMessage.sender === user.id
                                 ? "You: "
                                 : ""
-                            }${decryptedMessages[chat.latestMessage._id]}`
+                            }${decryptedMessages[chat.latestMessage._id] || "Loading..."}`
                           : "Tap to start chat"}
                       </span>
                     </div>
@@ -420,7 +459,9 @@ function ChatWindow() {
                         if (ch._id !== user.id) return ch.username;
                       })}
                     </strong>
-                    <span>{chats.online ? "Active now" : "Last seen 20m ago"}</span>
+                    <span>
+                      {chats.online ? "Active now" : "Last seen 20m ago"}
+                    </span>
                   </div>
                 </div>
                 <div className="chat-actions">
@@ -477,6 +518,16 @@ function ChatWindow() {
                     </div>
                   </div>
                 ))}
+                {isTyping && (
+                  <div className="typing-indicator">
+                    <div className="typing-dots">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
+                    {/* <span className="typing-text">typing...</span> */}
+                  </div>
+                )}
               </div>
 
               <div className="message-input">
@@ -484,7 +535,7 @@ function ChatWindow() {
                   <input
                     type="text"
                     value={msg}
-                    onChange={(e) => setMsg(e.target.value)}
+                    onChange={typingHandler}
                     placeholder="Type a secure message..."
                     aria-label="Type a secure message"
                   />
@@ -506,7 +557,10 @@ function ChatWindow() {
                   <path d="M6.45455 19L2 22.5V4C2 3.44772 2.44772 3 3 3H21C21.5523 3 22 3.44772 22 4V18C22 18.5523 21.5523 19 21 19H6.45455ZM5.76282 17H20V5H4V18.3851L5.76282 17ZM11 10H13V12H11V10ZM7 10H9V12H7V10ZM15 10H17V12H15V10Z"></path>
                 </svg>
                 <h2>Select a conversation to start chatting</h2>
-                <p>Choose a chat from the list or search for a user to begin your encrypted conversation.</p>
+                <p>
+                  Choose a chat from the list or search for a user to begin your
+                  encrypted conversation.
+                </p>
               </div>
             </div>
           )}

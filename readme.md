@@ -8,11 +8,10 @@ A secure, end-to-end encrypted real-time messaging application built with React 
 - **Real-Time Messaging**: Instant message delivery using Socket.IO
 - **User Authentication**: Secure JWT-based authentication with token management
 - **User Search**: Find and initiate conversations with other users
+- **Typing Indicator**: Animated typing status for live chat feedback
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
 - **Multi-Tab Support**: Secure token isolation across browser tabs
 - **Message History**: Persistent message storage with decryption support
-- **Online Status**: See when users are active
-- **Security Panel**: View chat encryption status and security information
 
 ## 🛠️ Technology Stack
 
@@ -188,6 +187,10 @@ E2EE Chat App/
 2. Type your message in the input field
 3. Click send or press Enter
 4. Message is encrypted and sent in real-time
+
+### Typing Awareness
+- The app displays a live typing indicator while the other party is composing a message.
+- This gives immediate feedback in the chat thread and improves real-time conversation flow.
 
 ### Security Features
 - Open the Security Panel to verify encryption status
