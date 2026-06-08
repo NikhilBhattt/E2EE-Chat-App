@@ -20,7 +20,9 @@ function SearchUser({ handleAccessChat }) {
     try {
       setLoading(true);
 
-      const token = localStorage.getItem("token");
+      const currUserId = sessionStorage.getItem("currUser");
+      const token =
+        localStorage.getItem(`token_${currUserId}`) || sessionStorage.getItem("token");
       const url = `${import.meta.env.VITE_API_URL}/user/search?username=${search}`;
 
       const { data } = await axios.get(url, {

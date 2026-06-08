@@ -1,4 +1,4 @@
-import "./SecurityPanel.css"
+import "./SecurityPanel.css";
 
 function SecurityPanel() {
   return (
@@ -15,13 +15,13 @@ function SecurityPanel() {
               strokeLinejoin="round"
             ></path>
             <path
-              d="M12 11V14"
+              d="M13.5 9V13"
               stroke="currentColor"
               strokeWidth="1.6"
               strokeLinecap="round"
             ></path>
             <path
-              d="M12 17H12.01"
+              d="M14 17H13.01"
               stroke="currentColor"
               strokeWidth="1.6"
               strokeLinecap="round"

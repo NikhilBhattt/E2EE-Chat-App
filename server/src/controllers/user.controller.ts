@@ -40,7 +40,7 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
 
   return res
     .status(201)
-    .json({ status: "success", data: userWithoutPassword, token });
+    .json({ status: "success", user: userWithoutPassword, token });
 });
 
 const loginUser = asyncHandler(async (req: Request, res: Response) => {
@@ -73,7 +73,7 @@ const loginUser = asyncHandler(async (req: Request, res: Response) => {
   const { password: _password, ...userWithoutPassword } = user;
   return res
     .status(200)
-    .json({ status: "success", data: userWithoutPassword, token });
+    .json({ status: "success", user: userWithoutPassword, token });
 });
 
 interface AuthRequest extends Request {
@@ -114,4 +114,30 @@ const searchUser = asyncHandler(async (req: AuthRequest, res: Response) => {
   return res.status(200).json({ status: "success", users });
 });
 
-export { registerUser, loginUser, getUserProfile, logoutUser, searchUser };
+const getUserPublicKey = asyncHandler(
+  async (req: AuthRequest, res: Response) => {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(404).json({ status: "error", message: "ID required" });
+    }
+
+    const user = await User.findOne({ _id: id }).select("publicKey").lean();
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "User not found!" });
+    }
+    return res.json({ status: "success", publicKey: user.publicKey });
+  },
+);
+
+export {
+  registerUser,
+  loginUser,
+  getUserProfile,
+  logoutUser,
+  searchUser,
+  getUserPublicKey,
+};

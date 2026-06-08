@@ -9,17 +9,18 @@ interface AuthRequest extends Request {
 }
 
 const createMessage = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { content, recieverId } = req.body;
+  const { cipherText, iv, recieverId } = req.body;
 
   const msg = await Message.create({
     sender: req.user.id,
     reciever: recieverId,
-    content,
+    cipherText,
+    iv,
   });
 
   await Chat.findOneAndUpdate(
     {
-      users: { $all: [req.user.id, recieverId]},
+      users: { $all: [req.user.id, recieverId] },
     },
     {
       $set: {
@@ -39,7 +40,7 @@ const fetchUserMessages = asyncHandler(
     const messages = await Message.find({
       $or: [{ sender: req.user.id }, { reciever: req.user.id }],
     })
-      .select("sender reciever content createdAt")
+      .select("sender reciever cipherText iv createdAt")
       .lean();
 
     return res.status(200).json({ status: 200, messages });

@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { replace, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
@@ -10,6 +10,15 @@ import DefaultCover from "../../Assets/DefaultCover.webp";
 import SecurityPanel from "../../Components/SecurityPanel.jsx";
 import SearchUser from "../../Components/SearchUser.jsx";
 
+import {
+  getStoredPrivateKey,
+  importPrivateKey,
+} from "../../crypto/keyStorage.js";
+import { importPublicKey } from "../../crypto/keyStorage.js";
+import { deriveSharedKey } from "../../crypto/deriveSharedKey.js";
+import { encryptMessage } from "../../crypto/encryptMessage.js";
+import { decryptMessage } from "../../crypto/decryptMessage.js";
+
 function ChatWindow() {
   const navigate = useNavigate();
 
@@ -17,13 +26,20 @@ function ChatWindow() {
   const [user, setUser] = useState(null);
   const [chats, setChats] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [decryptedMessages, setDecryptedMessages] = useState({});
   const [currTab, setCurrTab] = useState("chat");
   const [msg, setMsg] = useState("");
 
   const [selectedChatId, setSelectedChatId] = useState(null);
+  const messageThreadRef = useRef(null);
+
+  const getCurrentToken = () => {
+    const currUserId = sessionStorage.getItem("currUser");
+    return localStorage.getItem(`token_${currUserId}`) || sessionStorage.getItem("token");
+  };
 
   const activeChat = useMemo(
-    () => chats.find((chat) => chat._id === selectedChatId) || chats[0],
+    () => chats.find((chat) => chat._id === selectedChatId),
     [selectedChatId],
   );
 
@@ -44,11 +60,10 @@ function ChatWindow() {
     });
   }, [activeChat, messages]);
 
-  async function handlLogout() {
+  async function handleLogout() {
     if (confirm("Are you sure you want to Logout?")) {
-      // logout api
       try {
-        const token = localStorage.getItem("token");
+        const token = getCurrentToken();
         const url = `${import.meta.env.VITE_API_URL}/user/logout`;
 
         const response = await axios.post(
@@ -60,8 +75,11 @@ function ChatWindow() {
             },
           },
         );
+        const currUserId = sessionStorage.getItem("currUser");
+        localStorage.removeItem(`token_${currUserId}`);
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("currUser");
 
-        localStorage.clear();
         navigate("/login", { replace: true });
       } catch (error) {
         console.error("Logout error: ", error);
@@ -82,12 +100,23 @@ function ChatWindow() {
     if (!msg.trim()) return;
 
     try {
-      const token = localStorage.getItem("token");
+      const token = getCurrentToken();
       const url = `${import.meta.env.VITE_API_URL}/message/`;
 
       const reciever = activeChat.users.find((u) => u._id !== user.id);
+
+      const recieverPublicKey = await importPublicKey(reciever.publicKey);
+
+      const senderPrivateKey = await importPrivateKey(
+        getStoredPrivateKey(user.id),
+      );
+
+      const aesKey = await deriveSharedKey(senderPrivateKey, recieverPublicKey);
+      const encrypted = await encryptMessage(msg.trim(), aesKey);
+
       const bodyData = {
-        content: msg.trim(),
+        cipherText: encrypted.cipherText,
+        iv: encrypted.iv,
         recieverId: reciever._id,
       };
 
@@ -117,7 +146,7 @@ function ChatWindow() {
 
     try {
       const url = `${import.meta.env.VITE_API_URL}/chat/`;
-      const token = localStorage.getItem("token");
+      const token = getCurrentToken();
 
       const { data } = await axios.post(
         url,
@@ -144,7 +173,7 @@ function ChatWindow() {
     // toast("Welcome to CipherChat!");
 
     const fetchUser = async () => {
-      const token = localStorage.getItem("token");
+      const token = getCurrentToken();
       const url = `${import.meta.env.VITE_API_URL}/user/me`;
 
       const { data } = await axios.get(url, {
@@ -156,7 +185,7 @@ function ChatWindow() {
     };
 
     const fetchChats = async () => {
-      const token = localStorage.getItem("token");
+      const token = getCurrentToken();
       const url = `${import.meta.env.VITE_API_URL}/chat/`;
 
       const { data } = await axios.get(url, {
@@ -165,13 +194,12 @@ function ChatWindow() {
         },
       });
       if (data.chats) {
-        setSelectedChatId(data.chats?.[0]?._id);
         setChats(data.chats);
       }
     };
 
     const fetchMessages = async () => {
-      const token = localStorage.getItem("token");
+      const token = getCurrentToken();
       const url = `${import.meta.env.VITE_API_URL}/message/all`;
 
       const { data } = await axios.get(url, {
@@ -194,9 +222,63 @@ function ChatWindow() {
   }, []);
 
   useEffect(() => {
-    const handler = ({ chat, newMessage }) => {
-      console.log("listening to newMessage");
+    if (!user) return;
 
+    const decryptAll = async () => {
+      for (const message of messages) {
+        const key = message._id || message.createdAt;
+        if (decryptedMessages[key]) continue;
+
+        try {
+          const otherUserId =
+            message.sender === user.id ? message.reciever : message.sender;
+          const url = `${import.meta.env.VITE_API_URL}/user/${otherUserId}/public-key`;
+          const token = getCurrentToken();
+          const { data } = await axios.get(url, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          const otherUserPublicKey = await importPublicKey(data.publicKey);
+          const myPrivateKey = await importPrivateKey(
+            getStoredPrivateKey(user.id),
+          );
+
+          const aesKey = await deriveSharedKey(
+            myPrivateKey,
+            otherUserPublicKey,
+          );
+
+          const plain = await decryptMessage(
+            message.cipherText,
+            message.iv,
+            aesKey,
+          );
+
+          setDecryptedMessages((prev) => ({ ...prev, [key]: plain }));
+        } catch (err) {
+          console.error(err);
+          setDecryptedMessages((prev) => ({
+            ...prev,
+            [key]: "(decryption failed)",
+          }));
+        }
+      }
+    };
+
+    decryptAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, user]);
+
+  useEffect(() => {
+    if (!messageThreadRef.current) return;
+    const thread = messageThreadRef.current;
+    thread.scrollTop = thread.scrollHeight;
+  }, [filteredMessages]);
+
+  useEffect(() => {
+    const handler = ({ chat, newMessage }) => {
       updateChatLatestMessage(chat._id, newMessage);
       setMessages((prev) => [...prev, newMessage]);
     };
@@ -209,7 +291,7 @@ function ChatWindow() {
 
   return (
     <>
-      <main className="dashboard">
+      <main className={`dashboard ${selectedChatId ? "chat-active" : ""}`}>
         <aside className="sidebar">
           <div className="panel-inner">
             <div className="sidebar-top">
@@ -228,7 +310,7 @@ function ChatWindow() {
                 </div>
 
                 <div className="user-logout">
-                  <button className="logout-btn" onClick={handlLogout}>
+                  <button className="logout-btn" onClick={handleLogout}>
                     <i className="ri-logout-box-r-line"></i>
                   </button>
                 </div>
@@ -290,12 +372,12 @@ function ChatWindow() {
                         })}
                       </strong>
                       <span>
-                        {chat.latestMessage?.content
+                        {chat.latestMessage?._id
                           ? `${
                               chat.latestMessage.sender === user.id
                                 ? "You: "
                                 : ""
-                            }${chat.latestMessage.content}`
+                            }${decryptedMessages[chat.latestMessage._id]}`
                           : "Tap to start chat"}
                       </span>
                     </div>
@@ -312,87 +394,122 @@ function ChatWindow() {
         </aside>
 
         <section className="chat-panel">
-          <div className="chat-header">
-            <div className="chat-header-left">
-              <div className="chat-header-avatar">
-                <img src={DefaultCover} alt={`Cover avatar`} />
-              </div>
-              <div className="chat-header-meta">
-                <strong>
-                  {activeChat?.users.map((ch) => {
-                    if (ch._id !== user.id) return ch.username;
-                  })}
-                </strong>
-                <span>{chats.online ? "Active now" : "Last seen 20m ago"}</span>
-              </div>
-            </div>
-            <div className="chat-actions">
-              <button type="button" aria-label="More options">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <circle cx="12" cy="5" r="1.5" fill="currentColor" />
-                  <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-                  <circle cx="12" cy="19" r="1.5" fill="currentColor" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <div className="encryption-banner">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="M12 3L5 6V11C5 15.418 8.91 19.44 13.5 20.35C18.09 19.44 22 15.418 22 11V6L15 3H12Z"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M12 11V14"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-              <path
-                d="M12 17H12.01"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
-            <span>Messages are end-to-end encrypted</span>
-          </div>
-
-          <div className="message-thread">
-            {filteredMessages.map((message, idx) => (
-              <div key={idx} className="message-group">
-                <div
-                  className={`message-bubble ${
-                    message.sender === user.id ? "outgoing" : "incoming"
-                  }`}
+          {selectedChatId ? (
+            <>
+              <div className="chat-header">
+                <button
+                  className="back-button-mobile"
+                  onClick={() => setSelectedChatId(null)}
+                  aria-label="Go back to chat list"
                 >
-                  <p className="message-text">{message.content}</p>
-                  <div className="message-info">
-                    <span>{timeSince(message.createdAt)}</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M7.82843 10.9999H20V12.9999H7.82843L13.1924 18.3638L11.7782 19.778L4 12.0001L11.7782 4.22217L13.1924 5.63639L7.82843 10.9999Z"></path>
+                  </svg>
+                </button>
+                <div className="chat-header-left">
+                  <div className="chat-header-avatar">
+                    <img src={DefaultCover} alt={`Cover avatar`} />
+                  </div>
+                  <div className="chat-header-meta">
+                    <strong>
+                      {activeChat?.users.map((ch) => {
+                        if (ch._id !== user.id) return ch.username;
+                      })}
+                    </strong>
+                    <span>{chats.online ? "Active now" : "Last seen 20m ago"}</span>
                   </div>
                 </div>
+                <div className="chat-actions">
+                  <button type="button" aria-label="More options">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <circle cx="12" cy="5" r="1.5" fill="currentColor" />
+                      <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+                      <circle cx="12" cy="19" r="1.5" fill="currentColor" />
+                    </svg>
+                  </button>
+                </div>
               </div>
-            ))}
-          </div>
 
-          <div className="message-input">
-            <form className="input-row" onSubmit={handleMessageSend}>
-              <input
-                type="text"
-                value={msg}
-                onChange={(e) => setMsg(e.target.value)}
-                placeholder="Type a secure message..."
-                aria-label="Type a secure message"
-              />
-              <button className="send-button" type="submit">
-                <i className="ri-send-plane-2-line"></i>
-              </button>
-            </form>
-          </div>
+              <div className="encryption-banner">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M12 3L5 6V11C5 15.418 8.91 19.44 13.5 20.35C18.09 19.44 22 15.418 22 11V6L15 3H12Z"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M12 11V14"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M12 17H12.01"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <span>Messages are end-to-end encrypted</span>
+              </div>
+
+              <div className="message-thread" ref={messageThreadRef}>
+                {filteredMessages.map((message, idx) => (
+                  <div key={idx} className="message-group">
+                    <div
+                      className={`message-bubble ${
+                        message.sender === user.id ? "outgoing" : "incoming"
+                      }`}
+                    >
+                      <p className="message-text">
+                        {decryptedMessages[message._id || message.createdAt] ??
+                          "Decrypting..."}
+                      </p>
+                      <div className="message-info">
+                        <span>{timeSince(message.createdAt)}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="message-input">
+                <form className="input-row" onSubmit={handleMessageSend}>
+                  <input
+                    type="text"
+                    value={msg}
+                    onChange={(e) => setMsg(e.target.value)}
+                    placeholder="Type a secure message..."
+                    aria-label="Type a secure message"
+                  />
+                  <button className="send-button" type="submit">
+                    <i className="ri-send-plane-2-line"></i>
+                  </button>
+                </form>
+              </div>
+            </>
+          ) : (
+            <div className="empty-chat-state">
+              <div className="empty-chat-content">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="empty-chat-icon"
+                >
+                  <path d="M6.45455 19L2 22.5V4C2 3.44772 2.44772 3 3 3H21C21.5523 3 22 3.44772 22 4V18C22 18.5523 21.5523 19 21 19H6.45455ZM5.76282 17H20V5H4V18.3851L5.76282 17ZM11 10H13V12H11V10ZM7 10H9V12H7V10ZM15 10H17V12H15V10Z"></path>
+                </svg>
+                <h2>Select a conversation to start chatting</h2>
+                <p>Choose a chat from the list or search for a user to begin your encrypted conversation.</p>
+              </div>
+            </div>
+          )}
         </section>
         <SecurityPanel />
       </main>

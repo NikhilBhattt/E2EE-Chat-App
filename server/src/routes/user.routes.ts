@@ -5,6 +5,7 @@ import {
   getUserProfile,
   logoutUser,
   searchUser,
+  getUserPublicKey,
 } from "../controllers/user.controller.ts";
 import authMiddleware from "../middleware/auth.middlewarwe.ts";
 
@@ -23,5 +24,7 @@ router.post("/validate", authMiddleware, (req, res) => {
 });
 
 router.get("/search", authMiddleware, searchUser);
+
+router.get("/:id/public-key", authMiddleware, getUserPublicKey);
 
 export default router;

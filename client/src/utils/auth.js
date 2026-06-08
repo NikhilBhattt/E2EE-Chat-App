@@ -1,7 +1,11 @@
 import axios from "axios";
 
 const isAuthenticated = async () => {
-  const token = localStorage.getItem("token");
+  const currUserId =
+    sessionStorage.getItem("currUser") || localStorage.getItem("currUser");
+  const token =
+    localStorage.getItem(`token_${currUserId}`) ||
+    sessionStorage.getItem("token");
 
   if (!token) return false;
 

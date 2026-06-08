@@ -12,10 +12,14 @@ const messageSchema = new Schema(
       ref: "User",
       required: true,
     },
-    content: {
+    cipherText: {
       type: String,
       required: true,
     },
+    iv: {
+      type: String,
+      requird: true
+    }
   },
   { timestamps: true },
 );

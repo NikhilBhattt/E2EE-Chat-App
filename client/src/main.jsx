@@ -9,8 +9,7 @@ import App from "./App.jsx";
 /**
  * Pages imports
  */
-import Login from "./Pages/Login/Login.jsx";
-import Register from "./Pages/Register/Register.jsx";
+import RenderRegisterLogin from "./Components/RenderRegisterLogin.jsx";
 import ChatWindow from "./Pages/Chat/ChatWindow.jsx";
 import AuthWrapper from "./utils/AuthWrapper.jsx";
 
@@ -21,8 +20,9 @@ createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <Routes>
       {/* Public Routes */}
-      <Route path="/" element={<Register />} />
-      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<RenderRegisterLogin />} />
+      <Route path="/register" element={<RenderRegisterLogin />} />
+      <Route path="/login" element={<RenderRegisterLogin />} />
 
       {/* Protected Routes */}
       <Route element={<AuthWrapper />}>

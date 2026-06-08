@@ -8,7 +8,7 @@
   margin-bottom: 0.8rem;
 }
 .security-panel .panel-inner {
-  display: grid;
+  /* display: grid; */
   gap: 1.2rem;
 }
 
@@ -39,11 +39,11 @@
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  padding: 0.55rem 0.85rem;
+  padding: 0.85rem;
   border-radius: 999px;
   color: #b8d6ff;
   background: rgba(56, 148, 255, 0.1);
-  font-size: 0.82rem;
+  font-size: 0.85rem;
 }
 
 .security-pill svg {
