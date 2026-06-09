@@ -4,7 +4,6 @@ import { replace, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import axios from "axios";
 import "./ChatWindow.css";
-import timeSince from "../../Utils/timeSince";
 import timeSinceIST from "../../Utils/timeSince";
 import DefaultCover from "../../Assets/DefaultCover.webp";
 import SecurityPanel from "../../Components/SecurityPanel.jsx";
@@ -513,7 +512,7 @@ function ChatWindow() {
                           "Decrypting..."}
                       </p>
                       <div className="message-info">
-                        <span>{timeSince(message.createdAt)}</span>
+                        <span>{timeSinceIST(message.createdAt)}</span>
                       </div>
                     </div>
                   </div>
