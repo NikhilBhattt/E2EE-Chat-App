@@ -1,11 +1,11 @@
-function timeSinceUTC(isoString) {
+function timeSinceIST(isoString) {
   const date = new Date(isoString);
   return date.toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "numeric",
     hour12: true,
-    timeZone: "UTC",
+    timeZone: "IST",
   });
 }
 
-export default timeSinceUTC;
+export default timeSinceIST;

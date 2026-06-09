@@ -5,7 +5,7 @@ import { io } from "socket.io-client";
 import axios from "axios";
 import "./ChatWindow.css";
 import timeSince from "../../Utils/timeSince";
-import timeSinceUTC from "../../Utils/timeSince";
+import timeSinceIST from "../../Utils/timeSince";
 import DefaultCover from "../../Assets/DefaultCover.webp";
 import SecurityPanel from "../../Components/SecurityPanel.jsx";
 import SearchUser from "../../Components/SearchUser.jsx";
@@ -421,7 +421,7 @@ function ChatWindow() {
                       </span>
                     </div>
                     <div className="conversation-meta">
-                      <small>{timeSinceUTC(chat.updatedAt)}</small>
+                      <small>{timeSinceIST(chat.updatedAt)}</small>
                     </div>
                   </div>
                 ))}
