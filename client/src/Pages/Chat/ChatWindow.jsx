@@ -4,7 +4,7 @@ import { replace, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import axios from "axios";
 import "./ChatWindow.css";
-import timeSinceIST from "../../Utils/timeSince";
+import timeSinceIST from "../../utils/timeSince.js";
 import DefaultCover from "../../Assets/DefaultCover.webp";
 import SecurityPanel from "../../Components/SecurityPanel.jsx";
 import SearchUser from "../../Components/SearchUser.jsx";
@@ -105,8 +105,8 @@ function ChatWindow() {
     if (!msg.trim()) return;
 
     try {
-      socket.emit("stop-typing", activeChat)
-      setIsTyping(false)
+      socket.emit("stop-typing", activeChat);
+      setIsTyping(false);
       const token = getCurrentToken();
       const url = `${import.meta.env.VITE_API_URL}/message/`;
 
@@ -179,13 +179,13 @@ function ChatWindow() {
 
     if (!socketConnected) return;
 
-    if (!typing){
+    if (!typing) {
       setTyping(true);
       socket.emit("start-typing", activeChat);
-    } 
+    }
 
     let lastTypingTime = new Date().getTime();
-    let  timerLength = 3000;
+    let timerLength = 3000;
 
     setTimeout(() => {
       let timeNow = new Date().getTime();
