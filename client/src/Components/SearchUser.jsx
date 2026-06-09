@@ -31,11 +31,9 @@ function SearchUser({ handleAccessChat }) {
         },
       });
 
-      console.log("search data-> ", data.users);
       setLoading(false);
       setSearchResult(data.users);
     } catch (error) {
-      console.log(error.message);
       toast("Error occured! please try again");
     }
   };

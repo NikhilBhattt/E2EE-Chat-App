@@ -4,6 +4,7 @@ A secure, end-to-end encrypted real-time messaging application built with React 
 
 ## ✨ Features
 
+- **Live Deployment**: Available publicly at https://cipher-chat-beta.vercel.app/
 - **End-to-End Encryption (E2EE)**: All messages are encrypted using client-side cryptography
 - **Real-Time Messaging**: Instant message delivery using Socket.IO
 - **User Authentication**: Secure JWT-based authentication with token management
@@ -12,6 +13,12 @@ A secure, end-to-end encrypted real-time messaging application built with React 
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
 - **Multi-Tab Support**: Secure token isolation across browser tabs
 - **Message History**: Persistent message storage with decryption support
+
+## 🌐 Live Demo
+
+Try the deployed app at:
+
+https://cipher-chat-beta.vercel.app/
 
 ## 🛠️ Technology Stack
 
