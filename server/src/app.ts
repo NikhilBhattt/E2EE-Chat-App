@@ -6,11 +6,11 @@ import cors from "cors";
 /**
  * Custom imports
  */
-import config from "./config/config.ts";
-import userRoutes from "./routes/user.routes.ts";
-import chatRoutes from "./routes/chat.routes.ts";
-import messageRoutes from "./routes/message.routes.ts";
-import connectDB from "./db/connection.ts";
+import config from "./config/config.js";
+import userRoutes from "./routes/user.routes.js";
+import chatRoutes from "./routes/chat.routes.js";
+import messageRoutes from "./routes/message.routes.js";
+import connectDB from "./db/connection.js";
 
 /***
  * Database connection

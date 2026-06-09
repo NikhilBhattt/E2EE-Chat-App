@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import config from "../config/config.ts";
-import BlackListToken from "../models/blacklisttoken.model.ts";
+import config from "../config/config.js";
+import BlackListToken from "../models/blacklisttoken.model.js";
 
 interface AuthRequest extends Request {
   user?: object | string;

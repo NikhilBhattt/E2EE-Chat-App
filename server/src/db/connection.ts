@@ -1,10 +1,9 @@
 import { connect } from "mongoose";
-import config from "../config/config.ts";
+import config from "../config/config.js";
 
 const connectDB = async () => {
   try {
     const connectionURI = config.MONGODB_URI;
-    console.log("connection uri in config.ts:", connectionURI);
     await connect(connectionURI);
 
     console.log("Connected to MongoDB");

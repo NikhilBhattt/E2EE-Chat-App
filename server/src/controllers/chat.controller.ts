@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import asyncHandler from "../utils/asyncHandler.ts";
-import Chat from "../models/chat.model.ts";
+import asyncHandler from "../utils/asyncHandler.js";
+import Chat from "../models/chat.model.js";
 
 interface AuthRequest extends Request {
   user: { id: string; username: string };

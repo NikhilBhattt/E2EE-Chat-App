@@ -6,8 +6,8 @@ import {
   logoutUser,
   searchUser,
   getUserPublicKey,
-} from "../controllers/user.controller.ts";
-import authMiddleware from "../middleware/auth.middlewarwe.ts";
+} from "../controllers/user.controller.js";
+import authMiddleware from "../middleware/auth.middlewarwe.js";
 
 const router = Router();
 

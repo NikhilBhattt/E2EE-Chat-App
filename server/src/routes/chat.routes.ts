@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { accessChat, fetchChat } from "../controllers/chat.controller.ts";
-import authMiddleware from "../middleware/auth.middlewarwe.ts";
+import { accessChat, fetchChat } from "../controllers/chat.controller.js";
+import authMiddleware from "../middleware/auth.middlewarwe.js";
 
 const router = Router();
 

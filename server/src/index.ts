@@ -1,14 +1,14 @@
 /**
  * Modules imports
  */
-import app from "./app.ts";
+import app from "./app.js";
 import { createServer } from "http";
 
 /**
  * Custom imports
  */
-import config from "./config/config.ts";
-import { initializeSocketIO } from "./socketio.ts";
+import config from "./config/config.js";
+import { initializeSocketIO } from "./socketio.js";
 
 /**
  * Raw HTTP Server

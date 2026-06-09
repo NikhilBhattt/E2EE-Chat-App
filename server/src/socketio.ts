@@ -1,4 +1,4 @@
-import config from "./config/config.ts";
+import config from "./config/config.js";
 import { Server, type Server as SocketIOServer, type Socket } from "socket.io";
 import type { Server as HTTPServer } from "http";
 

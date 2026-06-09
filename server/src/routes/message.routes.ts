@@ -1,9 +1,9 @@
 import { Router } from "express";
-import authMiddleware from "../middleware/auth.middlewarwe.ts";
+import authMiddleware from "../middleware/auth.middlewarwe.js";
 import {
   createMessage,
   fetchUserMessages,
-} from "../controllers/message.controller.ts";
+} from "../controllers/message.controller.js";
 
 const router = Router();
 

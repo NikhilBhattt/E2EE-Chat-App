@@ -1,10 +1,10 @@
 import type { Request, Response } from "express";
-import User from "../models/user.model.ts";
+import User from "../models/user.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import config from "../config/config.ts";
-import asyncHandler from "../utils/asyncHandler.ts";
-import BlackListToken from "../models/blacklisttoken.model.ts";
+import config from "../config/config.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import BlackListToken from "../models/blacklisttoken.model.js";
 
 const registerUser = asyncHandler(async (req: Request, res: Response) => {
   const { username, password, publicKey } = req.body;
