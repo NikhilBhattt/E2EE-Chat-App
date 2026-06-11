@@ -8,6 +8,7 @@ import timeSinceIST from "../../utils/timeSince.js";
 import DefaultCover from "../../Assets/DefaultCover.webp";
 import SecurityPanel from "../../Components/SecurityPanel.jsx";
 import SearchUser from "../../Components/SearchUser.jsx";
+import EmptyChatContainer from "../../Components/EmptyChatContainer.jsx"
 
 import {
   getStoredPrivateKey,
@@ -389,7 +390,11 @@ function ChatWindow() {
 
             {currTab == "chat" ? (
               <div className="conversation-list">
-                {chats.map((chat) => (
+                {
+                  chats.length===0 ?
+                  <EmptyChatContainer/>
+                  :
+                chats.map((chat) => (
                   <div
                     key={chat._id}
                     className={`conversation-card ${chat._id === selectedChatId ? "active" : ""}`}

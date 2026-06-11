@@ -24,9 +24,9 @@ createRoot(document.getElementById("root")).render(
       <Route path="/register" element={<RenderRegisterLogin />} />
       <Route path="/login" element={<RenderRegisterLogin />} />
 
+        <Route path="/chat" element={<ChatWindow />} />
       {/* Protected Routes */}
       <Route element={<AuthWrapper />}>
-        <Route path="/chat" element={<ChatWindow />} />
       </Route>
 
       {/* 404 Fallback */}
