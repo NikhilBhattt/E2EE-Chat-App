@@ -87,7 +87,6 @@
 .user-avatar {
   width: 56px;
   height: 56px;
-  overflow: hidden;
   border-radius: 50%;
   background: linear-gradient(135deg, #1d2634, #0e151f);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -95,7 +94,7 @@
   display: grid;
   place-items: center;
   position: relative;
-  z-index: -1;
+  z-index: 1;
 }
 
 .user-avatar img {
@@ -109,13 +108,12 @@
 .user-avatar::after {
   content: "";
   position: absolute;
-  width: 14px;
-  height: 14px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   bottom: 0;
   right: 0;
-  /* transform: translate(-50%, -50%); */
-  z-index: 1;
+  z-index: 2;
   background: #25d366;
   border: 2px solid #0b1119;
   box-shadow: 0 0 0 4px rgba(37, 211, 102, 0.18);
@@ -680,6 +678,20 @@
   .sidebar {
     border-radius: 24px;
     display: block;
+  }
+  .brand-chip span {
+    font-size: 1.15rem;
+  }
+  .user-meta span {
+    font-size: 0.95rem;
+  }
+
+  .user-avatar {
+    width: 60px;
+    height: 60px;
+  }
+  .logout-btn {
+    font-size: 1.45rem;
   }
 
   .chat-panel {

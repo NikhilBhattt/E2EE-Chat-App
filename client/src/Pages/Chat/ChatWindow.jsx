@@ -8,7 +8,7 @@ import timeSinceIST from "../../utils/timeSince.js";
 import DefaultCover from "../../Assets/DefaultCover.webp";
 import SecurityPanel from "../../Components/SecurityPanel.jsx";
 import SearchUser from "../../Components/SearchUser.jsx";
-import EmptyChatContainer from "../../Components/EmptyChatContainer.jsx"
+import EmptyChatContainer from "../../Components/EmptyChatContainer.jsx";
 
 import {
   getStoredPrivateKey,
@@ -390,45 +390,45 @@ function ChatWindow() {
 
             {currTab == "chat" ? (
               <div className="conversation-list">
-                {
-                  chats.length===0 ?
-                  <EmptyChatContainer/>
-                  :
-                chats.map((chat) => (
-                  <div
-                    key={chat._id}
-                    className={`conversation-card ${chat._id === selectedChatId ? "active" : ""}`}
-                    onClick={() => setSelectedChatId(chat._id)}
-                  >
-                    <div className="conversation-avatar">
-                      <img
-                        src={DefaultCover}
-                        alt={`${chat.users.map((ch) => {
-                          if (ch._id !== user.id) return ch.username;
-                        })} avatar`}
-                      />
+                {chats.length === 0 ? (
+                  <EmptyChatContainer />
+                ) : (
+                  chats.map((chat) => (
+                    <div
+                      key={chat._id}
+                      className={`conversation-card ${chat._id === selectedChatId ? "active" : ""}`}
+                      onClick={() => setSelectedChatId(chat._id)}
+                    >
+                      <div className="conversation-avatar">
+                        <img
+                          src={DefaultCover}
+                          alt={`${chat.users.map((ch) => {
+                            if (ch._id !== user.id) return ch.username;
+                          })} avatar`}
+                        />
+                      </div>
+                      <div className="conversation-content">
+                        <strong>
+                          {chat.users.map((ch) => {
+                            if (ch._id !== user.id) return ch.username;
+                          })}
+                        </strong>
+                        <span>
+                          {chat.latestMessage?._id
+                            ? `${
+                                chat.latestMessage.sender === user.id
+                                  ? "You: "
+                                  : ""
+                              }${decryptedMessages[chat.latestMessage._id] || "Loading..."}`
+                            : "Tap to start chat"}
+                        </span>
+                      </div>
+                      <div className="conversation-meta">
+                        <small>{timeSinceIST(chat.updatedAt)}</small>
+                      </div>
                     </div>
-                    <div className="conversation-content">
-                      <strong>
-                        {chat.users.map((ch) => {
-                          if (ch._id !== user.id) return ch.username;
-                        })}
-                      </strong>
-                      <span>
-                        {chat.latestMessage?._id
-                          ? `${
-                              chat.latestMessage.sender === user.id
-                                ? "You: "
-                                : ""
-                            }${decryptedMessages[chat.latestMessage._id] || "Loading..."}`
-                          : "Tap to start chat"}
-                      </span>
-                    </div>
-                    <div className="conversation-meta">
-                      <small>{timeSinceIST(chat.updatedAt)}</small>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             ) : (
               <SearchUser handleAccessChat={accessChat} />
